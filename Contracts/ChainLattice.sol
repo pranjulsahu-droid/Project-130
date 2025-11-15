@@ -7,6 +7,7 @@ pragma solidity ^0.8.20;
  * Each asset is uniquely identified by a hash created on-chain (no manual input required).
  */
 contract Project {
+
     struct Asset {
         address owner;
         string metadataURI;
