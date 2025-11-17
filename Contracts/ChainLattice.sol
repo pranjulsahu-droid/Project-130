@@ -1,11 +1,4 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
 
-/**
- * @title ChainLattice
- * @dev A decentralized asset registry with automatic ID generation and ownership tracking.
- * Each asset is uniquely identified by a hash created on-chain (no manual input required).
- */
 contract Project {
 
     struct Asset {
