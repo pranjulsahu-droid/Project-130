@@ -2,7 +2,7 @@
  
 ## Project Description
 **ChainLattice** is a decentralized asset registry that enables users to **record, verify, and transfer ownership** of digital assets securely on the blockchain.  
-Each asset is represented by its **unique hash** and accompanied by a metadata URI, allowing immutable proof of creation and ownership transfer.
+Each asset is represented by its **unique hash** and accompanied by a metadata URI, allowing immutable proof of creation and ownership  transfer.
 
 ---
 
