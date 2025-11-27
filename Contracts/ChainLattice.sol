@@ -1,90 +1,66 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
-contract Project {
+/// @title ChainLattice - A basic blockchain project template
+/// @author
+/// @notice This is a starter Solidity contract for the ChainLattice project
+/// @dev Extend this contract with your project-specific logic
 
-    struct Asset {
-        address owner;
-        string metadataURI;
-        uint256 timestamp;
+contract ChainLattice {
+    address public owner;
+
+    // Basic data structure for lattice-like nodes
+    struct Node {
+        uint256 id;
+        string data;
+        uint256 parentId; // could be used to link nodes
+        bool exists;
     }
 
-    mapping(bytes32 => Asset) private assets;
-    bytes32[] private assetList;
+    mapping(uint256 => Node) public nodes;
+    uint256 public nodeCount;
 
-    event AssetRegistered(bytes32 indexed assetId, address indexed owner, string metadataURI, uint256 timestamp);
-    event OwnershipTransferred(bytes32 indexed assetId, address indexed previousOwner, address indexed newOwner);
+    // Events
+    event NodeCreated(uint256 indexed id, string data, uint256 parentId);
+    event NodeUpdated(uint256 indexed id, string data);
 
-    /**
-     * @dev Automatically registers a new asset.
-     * The asset ID is auto-generated from the sender address and timestamp.
-     * @param metadataURI Optional metadata URI; can be an empty string.
-     */
-    function registerAsset(string calldata metadataURI) external {
-        bytes32 assetId = keccak256(abi.encodePacked(msg.sender, block.timestamp, block.number));
-
-        require(assets[assetId].timestamp == 0, "Asset already exists");
-
-        string memory finalURI = bytes(metadataURI).length > 0
-            ? metadataURI
-            : string(abi.encodePacked("chainlattice://auto/", toHexString(assetId)));
-
-        assets[assetId] = Asset(msg.sender, finalURI, block.timestamp);
-        assetList.push(assetId);
-
-        emit AssetRegistered(assetId, msg.sender, finalURI, block.timestamp);
+    // Modifiers
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can perform this action");
+        _;
     }
 
-    /**
-     * @dev Transfers ownership of an asset to a new address.
-     * @param assetId ID of the asset to transfer.
-     * @param newOwner Address of the new owner.
-     */
-    function transferOwnership(bytes32 assetId, address newOwner) external {
-        require(assets[assetId].timestamp != 0, "Asset not found");
-        require(assets[assetId].owner == msg.sender, "Only owner can transfer");
-
-        address previousOwner = assets[assetId].owner;
-        assets[assetId].owner = newOwner;
-
-        emit OwnershipTransferred(assetId, previousOwner, newOwner);
+    modifier nodeExists(uint256 _id) {
+        require(nodes[_id].exists, "Node does not exist");
+        _;
     }
 
-    /**
-     * @dev Fetch details of an asset by ID.
-     * @param assetId Asset hash to query.
-     * @return owner Owner address.
-     * @return metadataURI Metadata link.
-     * @return timestamp Registration timestamp.
-     */
-    function getAsset(bytes32 assetId)
-        external
-        view
-        returns (address owner, string memory metadataURI, uint256 timestamp)
-    {
-        Asset memory asset = assets[assetId];
-        require(asset.timestamp != 0, "Asset not found");
-        return (asset.owner, asset.metadataURI, asset.timestamp);
+    constructor() {
+        owner = msg.sender;
+        nodeCount = 0;
     }
 
-    /**
-     * @dev Returns the total number of registered assets.
-     */
-    function getTotalAssets() external view returns (uint256) {
-        return assetList.length;
+    /// @notice Create a new node in the lattice
+    /// @param _data The data for the node
+    /// @param _parentId The parent node ID (0 if root)
+    function createNode(string memory _data, uint256 _parentId) public onlyOwner {
+        nodeCount++;
+        nodes[nodeCount] = Node(nodeCount, _data, _parentId, true);
+        emit NodeCreated(nodeCount, _data, _parentId);
     }
 
-    /**
-     * @dev Converts bytes32 to a hexadecimal string (for auto-generated URI).
-     */
-    function toHexString(bytes32 data) internal pure returns (string memory) {
-        bytes memory hexChars = "0123456789abcdef";
-        bytes memory str = new bytes(64);
-        for (uint256 i = 0; i < 32; i++) {
-            str[i * 2] = hexChars[uint8(data[i] >> 4)];
-            str[1 + i * 2] = hexChars[uint8(data[i] & 0x0f)];
-        }
-        return string(str);
+    /// @notice Update the data of an existing node
+    /// @param _id The node ID to update
+    /// @param _data New data string
+    function updateNode(uint256 _id, string memory _data) public onlyOwner nodeExists(_id) {
+        nodes[_id].data = _data;
+        emit NodeUpdated(_id, _data);
+    }
+
+    /// @notice Get information about a node
+    /// @param _id The node ID
+    /// @return Node struct
+    function getNode(uint256 _id) public view nodeExists(_id) returns (Node memory) {
+        return nodes[_id];
     }
 }
-// 
-End
-// 
